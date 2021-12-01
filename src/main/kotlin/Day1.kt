@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
 
     // Part 1
     var timeMs = measureTimeMillis {
-        val part1Answer = input.mapIndexed { index, it -> if (index > 0) it > input[index-1] else false }.count { it }
+        val part1Answer = input.filterIndexed { index, it -> if (index > 0) it > input[index-1] else false }.count()
         println("$part1Answer measurements were larger than the previous one.")
     }
     println("Part 1 solution took $timeMs ms")
@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
     // Part 2
     timeMs = measureTimeMillis {
         val sums = input.mapIndexed { index, it -> if (index < input.size - 2) it + input[index+1] + input[index+2] else 0 }
-        val part2Answer = sums.mapIndexed { index, it -> if (index > 0) it > sums[index-1] else false }.count { it }
+        val part2Answer = sums.filterIndexed { index, it -> if (index > 0) it > sums[index-1] else false }.count()
         println("$part2Answer measurements were larger than the previous one.")
     }
     println("Part 2 solution took $timeMs ms")
