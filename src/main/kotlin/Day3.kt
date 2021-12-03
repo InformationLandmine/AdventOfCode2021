@@ -12,9 +12,9 @@ fun main(args: Array<String>) {
     // Part 1 - find the most common bits and least common bits
     var gamma = ""
     var epsilon = ""
-    for (i in 0 until input[0].length - 1) {
+    repeat (input[0].length) { i ->
         gamma += if (input.count { it[i] == '0' } > input.count { it[i] == '1' }) '0' else '1'
-        epsilon += if (input.count { it[i] == '0' } < input.count { it[i] == '1' }) '0' else '1'
+        when (gamma[i]) { '0' -> epsilon += '1'; '1' -> epsilon += '0' }
     }
     println("Part 1: gamma * epsilon = ${gamma.toInt(2) * epsilon.toInt(2)}")
 
@@ -23,23 +23,19 @@ fun main(args: Array<String>) {
     var co2Scrubber = input.toList()
 
     // O2
-    o2loop@for (i in 0 until input[0].length - 1) {
-        if (o2Generator.count { it[i] == '0' } > o2Generator.count { it[i] == '1' }) {
-            o2Generator = o2Generator.filter { it[i] == '0' }
-        } else {
-            o2Generator = o2Generator.filter { it[i] == '1' }
+    repeat (input[0].length) { i ->
+        if (o2Generator.size > 1) {
+            when (o2Generator.count { it[i] == '0' } > o2Generator.count { it[i] == '1' }) {
+                true -> o2Generator = o2Generator.filter { it[i] == '0' }
+                false -> o2Generator = o2Generator.filter { it[i] == '1' }
+            }
         }
-        if (o2Generator.size <= 1) break@o2loop
-    }
-
-    // CO2
-    co2loop@for (i in 0 until input[0].length - 1) {
-        if (co2Scrubber.count { it[i] == '0' } > co2Scrubber.count { it[i] == '1' }) {
-            co2Scrubber = co2Scrubber.filter { it[i] == '1' }
-        } else {
-            co2Scrubber = co2Scrubber.filter { it[i] == '0' }
+        if (co2Scrubber.size > 1) {
+            when (co2Scrubber.count { it[i] == '0' } > co2Scrubber.count { it[i] == '1' }) {
+                true -> co2Scrubber = co2Scrubber.filter { it[i] == '1' }
+                false -> co2Scrubber = co2Scrubber.filter { it[i] == '0' }
+            }
         }
-        if (co2Scrubber.size <= 1) break@co2loop
     }
     println("Part 2: o2rating * co2rating = ${o2Generator[0].toInt(2) * co2Scrubber[0].toInt(2)}")
 }
