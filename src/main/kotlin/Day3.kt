@@ -25,15 +25,15 @@ fun main(args: Array<String>) {
     // O2
     repeat (input[0].length) { i ->
         if (o2Generator.size > 1) {
-            when (o2Generator.count { it[i] == '0' } > o2Generator.count { it[i] == '1' }) {
-                true -> o2Generator = o2Generator.filter { it[i] == '0' }
-                false -> o2Generator = o2Generator.filter { it[i] == '1' }
+            o2Generator = when (o2Generator.count { it[i] == '0' } > o2Generator.count { it[i] == '1' }) {
+                true -> o2Generator.filter { it[i] == '0' }
+                false -> o2Generator.filter { it[i] == '1' }
             }
         }
         if (co2Scrubber.size > 1) {
-            when (co2Scrubber.count { it[i] == '0' } > co2Scrubber.count { it[i] == '1' }) {
-                true -> co2Scrubber = co2Scrubber.filter { it[i] == '1' }
-                false -> co2Scrubber = co2Scrubber.filter { it[i] == '0' }
+            co2Scrubber = when (co2Scrubber.count { it[i] == '0' } > co2Scrubber.count { it[i] == '1' }) {
+                true -> co2Scrubber.filter { it[i] == '1' }
+                false -> co2Scrubber.filter { it[i] == '0' }
             }
         }
     }
