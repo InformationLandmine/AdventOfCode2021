@@ -4,9 +4,7 @@ fun main(args: Array<String>) {
     println("2021 Advent of Code day 3")
 
     // Setup - Read the list of directions.
-    val input = ArrayList<String>()
-
-    File("day3input").forEachLine { input.add(it) }
+    val input = File("day3input").readLines()
     println("There are ${input.size} diagnostic readings")
 
     // Part 1 - find the most common bits and least common bits
