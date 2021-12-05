@@ -8,7 +8,7 @@ fun main(args: Array<String>) {
     // Setup - Read the bingo draws and cards.
     val input = File("day4input").readLines()
     val draws = ArrayDeque(input[0].split(',').map { it.toInt() })
-    val cards = input.drop(2).windowed(6, 6).map {
+    val cards = input.drop(1).windowed(6, 6).map {
         it.joinToString(" ").replace("  ", " ").trim().split(' ').map { Spot(it.toInt(), false) }
     }.map { BingoCard(it) }
     println("There are ${cards.size} bingo cards and ${draws.size} draws")
@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
 
 class Spot(var num: Int, var marked: Boolean)
 
-class BingoCard(val spots: List<Spot>) {
+class BingoCard(private val spots: List<Spot>) {
     private val size: Int = sqrt(spots.size.toDouble()).roundToInt()
     private val rows = spots.windowed(size, size)
     private val cols = spots.windowed(size * size - size + 1).map { it.slice(0 until (size * size) step size) }
