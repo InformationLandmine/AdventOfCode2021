@@ -16,31 +16,41 @@ fun main(args: Array<String>) {
     // Create the vent map.
     val vents = VentMap()
 
-    // Part 1 - plot the terrain map with just horizontal and vertical lines.
+    // Part 1 - plot the vent map with just horizontal and vertical lines.
     val straightLines = ventLines.filter { (it.first.x == it.second.x) or (it.first.y == it.second.y) }
     straightLines.forEach { vents.plotLine(it) }
     println("The horizontal and vertical lines overlap at ${vents.overlapCount} points")
 
     // Part 2 - plot the rest of the lines.
-    val remainingLines = ventLines.filterNot {(it.first.x == it.second.x) or (it.first.y == it.second.y) }
+    val remainingLines = ventLines.filterNot { (it.first.x == it.second.x) or (it.first.y == it.second.y) }
     remainingLines.forEach { vents.plotLine(it) }
     println("After plotting the remaining lines, they overlap at ${vents.overlapCount} points")
+
+    // Part 3 - alternate method without using VentMap.
+    val overlaps = ventLines.flatMap { it.getPoints() }.groupBy { it }.count { it.value.size > 1 }
+    println("The new method found overlaps at $overlaps points")
 }
 
 data class Point(val x:Int, val y:Int)
+
+fun Pair<Point, Point>.getPoints(): List<Point> {
+    val dx = if (this.first.x < this.second.x) 1 else if (this.first.x > this.second.x) -1 else 0
+    val dy = if (this.first.y < this.second.y) 1 else if (this.first.y > this.second.y) -1 else 0
+    val result = ArrayList<Point>()
+    var newPoint = this.first
+    result.add(newPoint)
+    while (newPoint != this.second) {
+        newPoint = Point(newPoint.x + dx, newPoint.y + dy)
+        result.add(newPoint)
+    }
+    return result.toList()
+}
 
 class VentMap() {
     val vents = HashMap<Point, Int>()
     val overlapCount get() = vents.count { it.value > 1 }
 
     fun plotLine(line: Pair<Point, Point>) {
-        val dx = if (line.first.x < line.second.x) 1 else if (line.first.x > line.second.x) -1 else 0
-        val dy = if (line.first.y < line.second.y) 1 else if (line.first.y > line.second.y) -1 else 0
-        var plotPoint = line.first
-        while (plotPoint != line.second) {
-            vents[plotPoint] = (vents[plotPoint] ?: 0) + 1
-            plotPoint = Point(plotPoint.x + dx, plotPoint.y + dy)
-        }
-        vents[plotPoint] = (vents[plotPoint] ?: 0) + 1
+        line.getPoints().forEach { vents[it] = (vents[it] ?: 0) + 1 }
     }
 }
