@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
     println("There are ${displays.size} displays")
 
     // Part 1 - count the number of 1, 4, 7, and 8 digits in the output displays
-    val part1 = displays.sumOf { display -> display[1].count { (it.size <= 4) or (it.size == 7) }}
+    val part1 = displays.sumOf { display -> display[1].count { (it.size <= 4) or (it.size == 7) } }
     println("There are $part1 output digits that are 1, 4, 7, or 8")
 
     // Part 2 - solve the displays
