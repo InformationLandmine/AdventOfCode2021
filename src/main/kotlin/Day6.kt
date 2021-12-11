@@ -4,10 +4,8 @@ fun main(args: Array<String>) {
     println("2021 Advent of Code day 6")
 
     // Setup - Load the fish
-    val fishInput = File("day6input").readLines()[0].split(",").map { it.toInt() }
-    println("There are ${fishInput.size} fish")
-    val testInput = listOf(3, 4, 3, 1, 2)
-    val input = fishInput
+    val input = File("day6input").readLines()[0].split(",").map { it.toInt() }
+    println("There are ${input.size} fish")
 
     val fish = ArrayDeque((0..8).map { 0L }.toList())
     input.forEach { fish[it]++ }
@@ -22,7 +20,6 @@ fun main(args: Array<String>) {
 }
 
 fun iterateFish(fish: ArrayDeque<Long>) {
-    val reproducingFish = fish.removeFirst()
-    fish.addLast(reproducingFish)
-    fish[6] += reproducingFish
+    fish.addLast(fish.removeFirst())
+    fish[6] += fish.last()
 }
