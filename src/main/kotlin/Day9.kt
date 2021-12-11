@@ -1,14 +1,11 @@
 import java.io.File
 
-
 fun main(args: Array<String>) {
     println("2021 Advent of Code day 9")
 
     // Setup - Load the terrain.
-    val heightMap = ArrayList<List<mapPoint>>()
-
-    File("day9input").readLines().forEachIndexed { row, line ->
-        heightMap.add(line.mapIndexed { col, it -> mapPoint(it.toString().toInt(), Point(row, col),false) })
+    val heightMap = File("day9input").readLines().mapIndexed { row, line ->
+        line.mapIndexed { col, it -> mapPoint(it.toString().toInt(), Point(row, col),false) }
     }
 
     // Part 1 - find the low spots.
@@ -31,23 +28,18 @@ fun main(args: Array<String>) {
 
 class mapPoint(val height: Int, val loc: Point, var visited: Boolean)
 
-fun ArrayList<List<mapPoint>>.getNeighbors(row: Int, col: Int): List<mapPoint> {
+fun List<List<mapPoint>>.getNeighbors(row: Int, col: Int): List<mapPoint> {
     val result = ArrayList<mapPoint>()
     if (row > 0)result.add(this[row-1][col])
-    if (row < 99) result.add(this[row+1][col])
+    if (row < this.size - 1) result.add(this[row+1][col])
     if (col > 0) result.add(this[row][col-1])
-    if (col < 99) result.add(this[row][col+1])
-
+    if (col < this[row].size - 1) result.add(this[row][col+1])
     return result
 }
 
-fun ArrayList<List<mapPoint>>.getBasinSize(point: mapPoint): Int {
+fun List<List<mapPoint>>.getBasinSize(point: mapPoint): Int {
     var result = 0
-
     if (!point.visited && point.height < 9) result++
     point.visited = true
-
-    val neighbors = getNeighbors(point.loc.x, point.loc.y)
-    result += neighbors.filter { !it.visited && it.height < 9  }.sumOf { getBasinSize(it) }
-    return result
+    return result + getNeighbors(point.loc.x, point.loc.y).filter { !it.visited && it.height < 9  }.sumOf { getBasinSize(it) }
 }
