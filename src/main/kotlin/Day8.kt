@@ -7,9 +7,8 @@ fun main(args: Array<String>) {
     println("2021 Advent of Code day 8")
 
     // Setup - Load the displays
-    val displays = ArrayList<Display>()
-    File("day8input").readLines().forEach {
-        displays.add(it.split('|').map { it.trim().split(' ').map { it.toSet() } })
+    val displays = File("day8input").readLines().map {
+        it.split('|').map { it.trim().split(' ').map { it.toSet() } }
     }
     println("There are ${displays.size} displays")
 
