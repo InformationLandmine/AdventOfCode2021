@@ -4,9 +4,9 @@ fun main(args: Array<String>) {
     println("2021 Advent of Code day 12")
 
     // Setup - Load the cave connections.
-    val LINES_REGEX = """(.*)-(.*)""".toRegex()
+    val CONNECTIONS_REGEX = """(.*)-(.*)""".toRegex()
     val paths = File("day12input").readLines()
-        .map { with(LINES_REGEX.matchEntire(it)!!) { Pair(groups[1]?.value!!, groups[2]?.value!!) } }
+        .map { with(CONNECTIONS_REGEX.matchEntire(it)!!) { Pair(groups[1]?.value!!, groups[2]?.value!!) } }
 
     // Build the cave map.
     val nodes = paths.flatMap { listOf(CaveNode(it.first), CaveNode(it.second)) }.toSet()
