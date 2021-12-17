@@ -1,3 +1,4 @@
+import java.io.ByteArrayInputStream
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -14,61 +15,49 @@ fun main(args: Array<String>) {
         .map { String.format("%4s", it.toString().toInt(16).toString(2)).replace(" ".toRegex(), "0") }
         .joinToString("")
 
-
     val packets = ArrayList<Packet>()
+    val message = input.byteInputStream()
+
     do {
-        packets.add(parsePacket(input.drop(packets.sumOf { it.length })))
+        packets.add(parsePacket(message))
     } while (input.drop(packets.sumOf { it.length }).filterNot { it == '0' }.isNotEmpty())
 
     println("Version sum of transmission is ${packets.sumOf { it.version }}")
     println("Value of transmission is ${packets.first().value}")
-
-    println("Done!")
 }
 
-class Packet(val version: Int, val type: Int, val length: Int, val value: Long, val subs: List<Packet>)
+class Packet(val version: Int, val length: Int, val value: Long)
 
-fun parsePacket(message: String): Packet {
-    assert(message.isNotEmpty())
-
-    val subPackets = ArrayList<Packet>()
-    var length = 0
+fun parsePacket(msg: ByteArrayInputStream): Packet {
+    val initial = msg.available()
     var value = 0L
-    var version = message.take(3).toInt(2)
-    length += 3
-    val type = message.drop(length).take(3).toInt(2)
-    length += 3
+    var version = msg.readNBytes(3).decodeToString().toInt(2)
+    val type = msg.readNBytes(3).decodeToString().toInt(2)
 
     when (type) {
         4 -> {      // Literal
             do {
-                val group = message.drop(length).take(5)
-                length += 5
+                val group = msg.readNBytes(5).decodeToString()
                 value = value.shl(4) + group.drop(1).toLong(2)
             } while (group.first() == '1')
         }
-        else -> {
-            val lengthType = message.drop(length).take(1).toInt(2)
-            length += 1
+        else -> {   // Operator
+            val subPackets = ArrayList<Packet>()
+            val lengthType = msg.readNBytes(1).decodeToString().toInt(2)
             when (lengthType) {
                 0 -> {
-                    val bitLength = message.drop(length).take(15).toInt(2)
-                    length += 15
+                    val bitLength = msg.readNBytes(15).decodeToString().toInt(2)
                     var subLength = 0
                     do {
-                        subPackets.add(parsePacket(message.drop(length)))
+                        subPackets.add(parsePacket(msg))
                         subLength += subPackets.last().length
-                        length += subPackets.last().length
                         version += subPackets.last().version
                     } while (subLength < bitLength)
-                    assert(subLength == bitLength)
                 }
                 1 -> {
-                    val packetCount = message.drop(length).take(11).toInt(2)
-                    length += 11
+                    val packetCount = msg.readNBytes(11).decodeToString().toInt(2)
                     do {
-                        subPackets.add(parsePacket(message.drop(length)))
-                        length += subPackets.last().length
+                        subPackets.add(parsePacket(msg))
                         version += subPackets.last().version
                     } while (subPackets.size < packetCount)
                 }
@@ -85,5 +74,5 @@ fun parsePacket(message: String): Packet {
             }
         }
     }
-    return Packet(version, type, length, value, subPackets)
+    return Packet(version, initial - msg.available(), value)
 }
