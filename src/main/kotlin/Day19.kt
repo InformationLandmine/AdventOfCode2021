@@ -1,4 +1,6 @@
 import java.io.File
+import kotlin.math.abs
+import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) {
     println("2021 Advent of Code day 19")
@@ -18,27 +20,34 @@ fun main(args: Array<String>) {
         }
     }
 
-    println(scanners[0].beacons.map { it.y }.sorted())
-    println(scanners[17].beacons.map { (it.y + 83) * 1 }.sorted())
-
-
     // Part 1 - Orient all the scanners to scanner 0 and find the number of beacons.
-    scanners[0].oriented = true
-    orientScanner(scanners[0], scanners[17])
-//    while (scanners.any { !it.oriented }) {
-//        scanners.filter { it.oriented }.forEach { orientedScanner ->
-//            scanners.filter { !it.oriented }.forEach { unorientedScanner ->
-//                if (!unorientedScanner.nonOverlaps.contains(orientedScanner))
-//                    orientScanner(orientedScanner, unorientedScanner)
-//            }
-//        }
-//    }
-//    val part1 = scanners.flatMap { it.getAbsoluteBeacons() }.toSet().size
-//    println("Part 1 - There are $part1 unique beacons")
+    var part1 = 0
+    var timeMs = measureTimeMillis {
+        scanners[0].oriented = true
+        while (scanners.any { !it.oriented }) {
+            scanners.filter { it.oriented }.forEach { orientedScanner ->
+                scanners.filter { !it.oriented }.forEach { unorientedScanner ->
+                    if (!unorientedScanner.nonOverlaps.contains(orientedScanner))
+                        orientScanner(orientedScanner, unorientedScanner)
+                }
+            }
+        }
+        part1 = scanners.flatMap { it.getAbsoluteBeacons() }.toSet().size
+    }
+    println("Part 1 - There are $part1 unique beacons")
+    println("Part 1 took $timeMs ms")
 
-    // Part 2
-    val part2 = 42
-//    println("Part 2 - There are $part2 somethings")
+    // Part 2 - Find the largest Manhattan distance between any two scanners.
+    var part2 = 0
+    timeMs = measureTimeMillis {
+        part2 = scanners.flatMap { s1 ->
+            scanners.map { s2 ->
+                manhattanDist(s1.position, s2.position)
+            }
+        }.maxOf { it }
+    }
+    println("Part 2 - The largest Manhattan distance between any two scanners is $part2")
+    println("Part 2 took $timeMs ms")
 }
 
 data class Point3D (val x: Int, val y:Int, val z:Int) {
@@ -56,7 +65,7 @@ data class Point3D (val x: Int, val y:Int, val z:Int) {
 
 class Scanner(val name: String, var beacons:List<Point3D>) {
     var oriented = false
-    var offset = Point3D(0,0,0)
+    var position = Point3D(0,0,0)
     val nonOverlaps = ArrayList<Scanner>()
 
     fun flipX() { beacons = beacons.map { it.flipX() } }
@@ -68,11 +77,20 @@ class Scanner(val name: String, var beacons:List<Point3D>) {
     fun rotateYc() { beacons = beacons.map { it.rotateYc() } }
     fun rotateZc() { beacons = beacons.map { it.rotateZc() } }
 
-    fun getAbsoluteBeacons() = beacons.map { it + offset }
+    fun getAbsoluteBeacons() = beacons.map { it + position }
+}
+
+fun manhattanDist(p1: Point3D, p2: Point3D) = abs(p2.x - p1.x) + abs(p2.y - p1.y) + abs(p2.z - p1.z)
+
+fun getMatchCount(list1: List<Int>, list2: List<Int>): Int {
+    val other = list2.toMutableList()
+    var matchCount = 0
+    list1.forEach { if (other.contains(it)) { matchCount++; other.remove(it) } }
+    return matchCount
 }
 
 fun orientScanner(s1: Scanner, s2: Scanner) {
-    println("Checking ${s2.name} against ${s1.name}")
+    //println("Checking ${s2.name} against ${s1.name}")
     assert(s1.oriented)
     val searchRange = (-2000..2000)
 
@@ -80,80 +98,71 @@ fun orientScanner(s1: Scanner, s2: Scanner) {
     var match: Pair<Int, Int>
     var localOffset = Point3D(0, 0, 0)
     do {
-        match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.x + offset) }).count()) }.maxByOrNull { it.second }!!
+        match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.x }, s2.beacons.map { it.x + offset })) }.maxByOrNull { it.second }!!
         if (match.second >= 12) {
             break
         }
-        match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { ((it.x * -1) + offset) }).count()) }.maxByOrNull { it.second }!!
+        match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.x }, s2.beacons.map { (it.x + offset) * -1 })) }.maxByOrNull { it.second }!!
         if (match.second >= 12) {
             s2.flipX(); break
         }
-        match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.y + offset) }).count()) }.maxByOrNull { it.second }!!
+        match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.x }, s2.beacons.map { it.y + offset })) }.maxByOrNull { it.second }!!
         if (match.second >= 12) {
             s2.rotateZ(); break
         }
-        match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { ((it.y * -1) + offset) }).count()) }.maxByOrNull { it.second }!!
+        match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.x }, s2.beacons.map { (it.y + offset) * -1 })) }.maxByOrNull { it.second }!!
         if (match.second >= 12) {
             s2.rotateZc(); break
         }
-        match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.z + offset) }).count()) }.maxByOrNull { it.second }!!
+        match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.x }, s2.beacons.map { it.z + offset })) }.maxByOrNull { it.second }!!
         if (match.second >= 12) {
             s2.rotateY(); break
         }
-        match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { ((it.z * -1) + offset) }).count()) }.maxByOrNull { it.second }!!
+        match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.x }, s2.beacons.map { (it.z + offset) * -1 })) }.maxByOrNull { it.second }!!
         if (match.second >= 12) {
             s2.rotateYc(); break
         }
     } while(false)
 
     if (match.second >= 12) {
-        //println("x offset = ${match.first}")
         // Find the matching y-axis and orient to match.
         do {
-            match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.y + offset) }).count()) }.maxByOrNull { it.second }!!
+            match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.y }, s2.beacons.map { it.y + offset })) }.maxByOrNull { it.second }!!
             if (match.second >= 12) {
                 break
             }
-            match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.y + offset) * -1 }).count()) }.maxByOrNull { it.second }!!
+            match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.y }, s2.beacons.map { (it.y + offset) * -1 })) }.maxByOrNull { it.second }!!
             if (match.second >= 12) {
                 s2.flipY(); break
             }
-            match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.z + offset) }).count()) }.maxByOrNull { it.second }!!
+            match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.y }, s2.beacons.map { it.z + offset })) }.maxByOrNull { it.second }!!
             if (match.second >= 12) {
                 s2.rotateX(); break
             }
-            match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.z + offset) * -1 }).count()) }.maxByOrNull { it.second }!!
+            match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.y }, s2.beacons.map { (it.z + offset) * -1 })) }.maxByOrNull { it.second }!!
             if (match.second >= 12) {
                 s2.rotateXc(); break
             }
         } while(false)
 
         if (match.second >= 12) {
-
-            //println("y offset = ${match.first}")
-
             // The z-axis should match now that we've solved the other two, so just find the offset
-            match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.x }.intersect(s2.beacons.map { (it.x + offset) }).count()) }.maxByOrNull { it.second }!!
+            match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.x }, s2.beacons.map { it.x + offset })) }.maxByOrNull { it.second }!!
             assert (match.second >= 12)
-            //println("x offset = ${match.first}")
             localOffset = localOffset.copy(x = match.first)
-            match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.y }.intersect(s2.beacons.map { (it.y + offset) }).count()) }.maxByOrNull { it.second }!!
-            //println("y offset = ${match.first}")
+            match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.y }, s2.beacons.map { it.y + offset })) }.maxByOrNull { it.second }!!
             assert (match.second >= 12)
             localOffset = localOffset.copy(y = match.first)
-            match = searchRange.map { offset -> Pair(offset, s1.beacons.map { it.z }.intersect(s2.beacons.map { (it.z + offset) }).count()) }.maxByOrNull { it.second }!!
+            match = searchRange.map { offset -> Pair(offset, getMatchCount(s1.beacons.map { it.z }, s2.beacons.map { it.z + offset })) }.maxByOrNull { it.second }!!
             assert (match.second >= 12)
             localOffset = localOffset.copy(z = match.first)
 
-            s2.offset = s1.offset + localOffset
+            s2.position = s1.position + localOffset
             s2.oriented = true
-            println("${s2.name} oriented by ${s1.name}")
-            println(localOffset)
+            //println("${s2.name} oriented by ${s1.name}")
             //println(localOffset)
-            //println(s2.offset)
-            //println("")
         } else {
-            println("${s2.name} matched only one axis of ${s1.name}")
+            //println("${s2.name} matched only one axis of ${s1.name}")
             s1.nonOverlaps.add(s2)
             s2.nonOverlaps.add(s1)
         }
