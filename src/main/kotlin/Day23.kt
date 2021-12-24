@@ -353,16 +353,6 @@ val moves = mapOf(
     Pair(Pair(10, 24), listOf(9, 8, 23, 24)),
     Pair(Pair(10, 25), listOf(9, 8, 23, 24, 25)),
     Pair(Pair(10, 26), listOf(9, 8, 23, 24, 25, 26)),
-
-    // 10 to rooms
-    Pair(Pair(10, 11), listOf(9, 8, 7, 6, 5, 4, 3, 2, 11)),
-    Pair(Pair(10, 12), listOf(9, 8, 7, 6, 5, 4, 3, 2, 11, 12)),
-    Pair(Pair(10, 13), listOf(9, 8, 7, 6, 5, 4, 13)),
-    Pair(Pair(10, 14), listOf(9, 8, 7, 6, 5, 4, 13, 14)),
-    Pair(Pair(10, 15), listOf(9, 8, 7, 6, 15)),
-    Pair(Pair(10, 16), listOf(9, 8, 7, 6, 15, 16)),
-    Pair(Pair(10, 17), listOf(9, 8, 17)),
-    Pair(Pair(10, 18), listOf(9, 8, 17, 18)),
 )
 
 data class Location(val id: Int, val type: LocationType, val owner: Occupant, var occupant: Occupant)
